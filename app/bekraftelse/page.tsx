@@ -1,9 +1,9 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function ConfirmationPage() {
+function ConfirmationContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
   const [mounted, setMounted] = useState(false)
@@ -42,5 +42,17 @@ export default function ConfirmationPage() {
         </Link>
       </div>
     </div>
+  )
+}
+
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-16 flex items-center justify-center text-[var(--color-ink-secondary)]">
+        Laddar…
+      </div>
+    }>
+      <ConfirmationContent />
+    </Suspense>
   )
 }
