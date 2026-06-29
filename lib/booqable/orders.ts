@@ -2,7 +2,7 @@ import { booqable } from './client'
 import type { BookingState, BookingConfirmation } from '@/lib/types'
 
 interface BooqableOrderResponse {
-  data: { id: string; attributes: { number: string } }
+  data: { id: string; attributes: { number: string; status: string } }
 }
 
 interface BooqableCustomerResponse {
@@ -22,7 +22,7 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
   })
   const customerId = customerRes.data.id
 
-  // 2. Create order (only date + customer relationship — Booqable rejects unknown attributes)
+  // 2. Create order
   const orderRes = await booqable.post<BooqableOrderResponse>('/orders', {
     data: {
       type: 'orders',
@@ -39,7 +39,24 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
   })
   const orderId = orderRes.data.id
 
-  // 3. Add the main package as a product line (non-fatal — order is created regardless)
+  // 3. Transition order from "new" → "reserved" so it appears in Booqable UI
+  try {
+    await booqable.post('/order_status_transitions', {
+      data: {
+        type: 'order_status_transitions',
+        attributes: {
+          order_id: orderId,
+          transition_from: 'new',
+          transition_to: 'reserved',
+          confirm_shortage: false,
+        },
+      },
+    })
+  } catch {
+    // Transition failed — order stays as "new" but is still created
+  }
+
+  // 4. Add the package as a product line
   if (state.packageId) {
     try {
       await booqable.post('/lines', {
@@ -53,11 +70,10 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
         },
       })
     } catch {
-      // Line could not be added — order still created, staff can add product manually in Booqable
+      // Line could not be added — staff can add product manually in Booqable
     }
   }
 
-  // Booqable assigns number asynchronously — fall back to short order ID
   const orderNumber = orderRes.data.attributes.number ?? orderId.slice(0, 8).toUpperCase()
 
   return {
