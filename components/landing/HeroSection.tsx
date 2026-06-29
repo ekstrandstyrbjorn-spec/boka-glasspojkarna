@@ -1,21 +1,14 @@
 'use client'
 import { useReducedMotion } from 'framer-motion'
-import Image from 'next/image'
 
 export function HeroSection() {
   const reduce = useReducedMotion()
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background */}
-      <Image
-        src="/images/hero.jpg"
-        alt=""
-        fill
-        priority
-        className="object-cover object-center"
-        aria-hidden="true"
-      />
+    <section
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      style={{ backgroundImage: 'url(/images/hero.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+    >
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" aria-hidden="true" />
 
       {/* Content */}
