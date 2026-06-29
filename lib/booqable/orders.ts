@@ -57,9 +57,12 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
     }
   }
 
+  // Booqable assigns number asynchronously — fall back to short order ID
+  const orderNumber = orderRes.data.attributes.number ?? orderId.slice(0, 8).toUpperCase()
+
   return {
     orderId,
-    orderNumber: orderRes.data.attributes.number,
+    orderNumber,
     email: state.email,
   }
 }
