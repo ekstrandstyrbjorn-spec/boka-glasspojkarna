@@ -6,7 +6,8 @@ const INITIAL_STATE: BookingState = {
   startDate: '', endDate: '', guests: 1,
   selectedAddOns: [],
   customerType: 'private',
-  name: '', phone: '', email: '', address: '', eventLocation: '', notes: '',
+  name: '', firstName: '', lastName: '', phone: '', email: '',
+  address: '', postalCode: '', city: '', eventLocation: '', notes: '',
 }
 
 interface BookingStore {

@@ -43,9 +43,13 @@ export interface BookingState {
   selectedAddOns: SelectedAddOn[]
   customerType: CustomerType
   name: string
+  firstName: string
+  lastName: string
   phone: string
   email: string
   address: string
+  postalCode: string
+  city: string
   eventLocation: string
   notes: string
   companyName?: string

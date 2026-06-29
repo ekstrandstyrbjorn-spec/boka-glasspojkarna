@@ -1,3 +1,5 @@
+'use client'
+
 const STEPS = ['Datum', 'Tillval', 'Uppgifter', 'Bekräfta']
 
 export function BookingProgress({ currentStep }: { currentStep: number }) {
