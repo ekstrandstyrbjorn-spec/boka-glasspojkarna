@@ -59,7 +59,7 @@ export default function QuotePage() {
   const inputClass = "px-4 py-3 rounded-[var(--radius-input)] border border-[var(--color-border)] focus:border-[var(--color-brand)] focus:outline-none text-[var(--color-ink)] bg-white w-full"
 
   return (
-    <div className="min-h-screen pt-24 pb-24 px-4">
+    <div className="min-h-screen pt-16 pb-24 px-4">
       <div className="max-w-xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-ink)] mb-3">Begär offert</h1>
