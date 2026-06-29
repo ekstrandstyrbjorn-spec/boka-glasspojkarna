@@ -14,7 +14,7 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
     data: {
       type: 'customers',
       attributes: {
-        name: state.name,
+        name: `${state.firstName} ${state.lastName}`.trim() || state.name,
         email: state.email,
         phone: state.phone,
       },
@@ -35,7 +35,7 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
         customer_id: customerId,
         note: [
           `Gäster: ${state.guests}`,
-          `Eventplats: ${state.eventLocation}`,
+          state.eventLocation ? `Eventplats: ${state.eventLocation}` : '',
           `Adress: ${state.address}`,
           addOnNote ? `Tillval: ${addOnNote}` : '',
           state.notes ? `Övrigt: ${state.notes}` : '',

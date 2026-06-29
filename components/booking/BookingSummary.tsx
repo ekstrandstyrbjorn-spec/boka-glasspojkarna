@@ -24,7 +24,7 @@ export function BookingSummary() {
       if (!res.ok) throw new Error('Kunde inte skapa bokning')
       const data = await res.json()
       reset()
-      router.push(`/bekraftelse?orderId=${data.id}`)
+      router.push(`/bekraftelse?orderId=${data.orderNumber}`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ett fel uppstod. Försök igen.')
       setSubmitting(false)
