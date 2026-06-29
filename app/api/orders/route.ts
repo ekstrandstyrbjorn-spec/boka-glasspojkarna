@@ -7,7 +7,8 @@ export async function POST(req: NextRequest) {
     const state: BookingState = await req.json()
     const confirmation = await createOrder(state)
     return NextResponse.json(confirmation)
-  } catch {
-    return NextResponse.json({ error: 'Could not create order' }, { status: 500 })
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

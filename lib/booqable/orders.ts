@@ -10,6 +10,7 @@ interface BooqableCustomerResponse {
 }
 
 export async function createOrder(state: BookingState): Promise<BookingConfirmation> {
+  // 1. Create or find customer
   const customerRes = await booqable.post<BooqableCustomerResponse>('/customers', {
     data: {
       type: 'customers',
@@ -26,29 +27,52 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
     .map(a => `${a.name} ×${a.quantity}`)
     .join(', ')
 
+  const note = [
+    `Gäster: ${state.guests}`,
+    state.address ? `Adress: ${state.address}, ${state.postalCode} ${state.city}`.trim() : '',
+    addOnNote ? `Tillval: ${addOnNote}` : '',
+    state.notes ? `Övrigt: ${state.notes}` : '',
+    state.customerType === 'business'
+      ? `Företag: ${state.companyName ?? ''}, Org: ${state.orgNumber ?? ''}`
+      : '',
+  ].filter(Boolean).join('\n')
+
+  // 2. Create order with customer relationship
   const orderRes = await booqable.post<BooqableOrderResponse>('/orders', {
     data: {
       type: 'orders',
       attributes: {
-        starts_at: `${state.startDate}T00:00:00Z`,
-        stops_at: `${state.endDate}T23:59:59Z`,
-        customer_id: customerId,
-        note: [
-          `Gäster: ${state.guests}`,
-          state.eventLocation ? `Eventplats: ${state.eventLocation}` : '',
-          `Adress: ${state.address}`,
-          addOnNote ? `Tillval: ${addOnNote}` : '',
-          state.notes ? `Övrigt: ${state.notes}` : '',
-          state.customerType === 'business'
-            ? `Företag: ${state.companyName ?? ''}, Org: ${state.orgNumber ?? ''}`
-            : '',
-        ].filter(Boolean).join('\n'),
+        starts_at: `${state.startDate}T08:00:00Z`,
+        stops_at: `${state.endDate}T20:00:00Z`,
+        note,
+      },
+      relationships: {
+        customer: {
+          data: { type: 'customers', id: customerId },
+        },
       },
     },
   })
+  const orderId = orderRes.data.id
+
+  // 3. Add the main package as a product line
+  if (state.packageId) {
+    await booqable.post('/lines', {
+      data: {
+        type: 'lines',
+        attributes: {
+          order_id: orderId,
+          item_id: state.packageId,
+          quantity: 1,
+          starts_at: `${state.startDate}T08:00:00Z`,
+          stops_at: `${state.endDate}T20:00:00Z`,
+        },
+      },
+    })
+  }
 
   return {
-    orderId: orderRes.data.id,
+    orderId,
     orderNumber: orderRes.data.attributes.number,
     email: state.email,
   }
