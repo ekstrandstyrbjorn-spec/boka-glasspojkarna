@@ -18,7 +18,10 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     ...init,
     headers: { ...authHeaders(), ...(init.headers as Record<string, string> ?? {}) },
   })
-  if (!res.ok) throw new Error(`Booqable API error ${res.status}`)
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Booqable API error ${res.status}: ${body}`)
+  }
   return res.json() as Promise<T>
 }
 

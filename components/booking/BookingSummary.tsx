@@ -21,8 +21,8 @@ export function BookingSummary() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state),
       })
-      if (!res.ok) throw new Error('Kunde inte skapa bokning')
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Kunde inte skapa bokning')
       reset()
       router.push(`/bekraftelse?orderId=${data.orderNumber}`)
     } catch (e) {
