@@ -17,7 +17,6 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
       attributes: {
         name: `${state.firstName} ${state.lastName}`.trim() || state.name,
         email: state.email,
-        phone: state.phone,
       },
     },
   })
@@ -28,6 +27,7 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
     .join(', ')
 
   const note = [
+    `Telefon: ${state.phone}`,
     `Gäster: ${state.guests}`,
     state.address ? `Adress: ${state.address}, ${state.postalCode} ${state.city}`.trim() : '',
     addOnNote ? `Tillval: ${addOnNote}` : '',
