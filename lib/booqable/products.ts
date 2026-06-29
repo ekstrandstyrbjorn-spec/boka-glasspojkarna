@@ -1,5 +1,5 @@
 import { booqable } from './client'
-import type { Package, PackageCategory } from '@/lib/types'
+import type { Package, PackageCategory, PackageTier } from '@/lib/types'
 
 interface BooqableProductGroup {
   id: string
@@ -13,16 +13,24 @@ interface BooqableProductGroup {
   }
 }
 
-function parseCategoryAndTier(name: string): { category: PackageCategory; tier: 'S' | 'L' | 'XL' } {
-  const parts = name.toLowerCase().split(' ')
-  const tierMap: Record<string, 'S' | 'L' | 'XL'> = { s: 'S', l: 'L', xl: 'XL' }
+function parseCategoryAndTier(name: string): { category: PackageCategory; tier: PackageTier } {
+  const lower = name.toLowerCase()
+  const parts = lower.split(' ')
+
   const categoryMap: Record<string, PackageCategory> = {
     glass: 'glass', popcorn: 'popcorn', slush: 'slush', sockervadds: 'sockervadds',
   }
-  return {
-    category: categoryMap[parts[0]] ?? 'glass',
-    tier: tierMap[parts[1]] ?? 'S',
+  const tierMap: Record<string, PackageTier> = {
+    s: 'S', lilla: 'S',
+    l: 'L', mellan: 'L',
+    xl: 'XL', stora: 'XL', stor: 'XL',
+    deluxe: 'Deluxe',
   }
+
+  const category = parts.map(p => categoryMap[p]).find(Boolean) ?? 'glass'
+  const tier = parts.map(p => tierMap[p]).find(Boolean) ?? 'S'
+
+  return { category, tier }
 }
 
 export async function getPackages(): Promise<Package[]> {
@@ -52,7 +60,7 @@ export async function getPackages(): Promise<Package[]> {
       addOns: (meta.addOns as Package['addOns']) ?? [],
       imageUrl: pg.attributes.photo_url ?? '',
       gallery: (meta.gallery as string[]) ?? [],
-      isPopular: tier === 'L',
+      isPopular: tier === 'L' || tier === 'Deluxe',
     }
   })
 }

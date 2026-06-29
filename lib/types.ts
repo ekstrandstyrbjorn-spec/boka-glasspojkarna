@@ -1,5 +1,5 @@
 export type PackageCategory = 'glass' | 'popcorn' | 'slush' | 'sockervadds'
-export type PackageTier = 'S' | 'L' | 'XL'
+export type PackageTier = 'S' | 'L' | 'XL' | 'Deluxe'
 export type CustomerType = 'private' | 'business'
 
 export interface Inclusion {
