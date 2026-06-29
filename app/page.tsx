@@ -3,6 +3,8 @@ import { PackageGrid } from '@/components/landing/PackageGrid'
 import { getPackages } from '@/lib/booqable/products'
 import type { Package } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Boka partypaket – Glasspojkarna',
   description: 'Boka glassmaskiner, popcornmaskiner, slushmaskin och sockervaddsmaskin direkt online. Allt inkluderat, boka på 2 minuter.',
