@@ -10,7 +10,7 @@ interface BooqableCustomerResponse {
 }
 
 export async function createOrder(state: BookingState): Promise<BookingConfirmation> {
-  // 1. Create or find customer
+  // 1. Create customer
   const customerRes = await booqable.post<BooqableCustomerResponse>('/customers', {
     data: {
       type: 'customers',
@@ -22,29 +22,13 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
   })
   const customerId = customerRes.data.id
 
-  const addOnNote = state.selectedAddOns
-    .map(a => `${a.name} ×${a.quantity}`)
-    .join(', ')
-
-  const note = [
-    `Telefon: ${state.phone}`,
-    `Gäster: ${state.guests}`,
-    state.address ? `Adress: ${state.address}, ${state.postalCode} ${state.city}`.trim() : '',
-    addOnNote ? `Tillval: ${addOnNote}` : '',
-    state.notes ? `Övrigt: ${state.notes}` : '',
-    state.customerType === 'business'
-      ? `Företag: ${state.companyName ?? ''}, Org: ${state.orgNumber ?? ''}`
-      : '',
-  ].filter(Boolean).join('\n')
-
-  // 2. Create order with customer relationship
+  // 2. Create order (only date + customer relationship — Booqable rejects unknown attributes)
   const orderRes = await booqable.post<BooqableOrderResponse>('/orders', {
     data: {
       type: 'orders',
       attributes: {
         starts_at: `${state.startDate}T08:00:00Z`,
         stops_at: `${state.endDate}T20:00:00Z`,
-        note,
       },
       relationships: {
         customer: {
