@@ -39,20 +39,22 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
   })
   const orderId = orderRes.data.id
 
-  // 3. Add the main package as a product line
+  // 3. Add the main package as a product line (non-fatal — order is created regardless)
   if (state.packageId) {
-    await booqable.post('/lines', {
-      data: {
-        type: 'lines',
-        attributes: {
-          order_id: orderId,
-          item_id: state.packageId,
-          quantity: 1,
-          starts_at: `${state.startDate}T08:00:00Z`,
-          stops_at: `${state.endDate}T20:00:00Z`,
+    try {
+      await booqable.post('/lines', {
+        data: {
+          type: 'lines',
+          attributes: { quantity: 1 },
+          relationships: {
+            order: { data: { type: 'orders', id: orderId } },
+            item: { data: { type: 'product_groups', id: state.packageId } },
+          },
         },
-      },
-    })
+      })
+    } catch {
+      // Line could not be added — order still created, staff can add product manually in Booqable
+    }
   }
 
   return {
