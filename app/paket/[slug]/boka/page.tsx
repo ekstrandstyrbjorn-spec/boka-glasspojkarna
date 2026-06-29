@@ -3,6 +3,8 @@ import { useState, useEffect, use } from 'react'
 import { BookingProgress } from '@/components/booking/BookingProgress'
 import { StepDate } from '@/components/booking/StepDate'
 import { StepExtras } from '@/components/booking/StepExtras'
+import { ContactForm } from '@/components/booking/ContactForm'
+import { BookingSummary } from '@/components/booking/BookingSummary'
 import { useBookingState } from '@/hooks/useBookingState'
 import type { Package } from '@/lib/types'
 
@@ -54,16 +56,8 @@ export default function BookingPage({ params }: { params: Promise<{ slug: string
         <div className="mt-4">
           {currentStep === 1 && <StepDate pkg={pkg} />}
           {currentStep === 2 && <StepExtras pkg={pkg} />}
-          {currentStep === 3 && (
-            <div className="text-center py-16 text-[var(--color-ink-secondary)]">
-              Steg 3 implementeras i Task 12
-            </div>
-          )}
-          {currentStep === 4 && (
-            <div className="text-center py-16 text-[var(--color-ink-secondary)]">
-              Steg 4 implementeras i Task 12
-            </div>
-          )}
+          {currentStep === 3 && <ContactForm />}
+          {currentStep === 4 && <BookingSummary />}
         </div>
       </div>
     </div>

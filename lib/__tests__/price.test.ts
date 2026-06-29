@@ -8,7 +8,8 @@ const base: BookingState = {
   guests: 80,
   selectedAddOns: [],
   customerType: 'private',
-  name: '', phone: '', email: '', address: '', eventLocation: '', notes: '',
+  name: '', firstName: '', lastName: '', phone: '', email: '',
+  address: '', postalCode: '', city: '', eventLocation: '', notes: '',
 }
 
 test('base price only — correct VAT and total', () => {
