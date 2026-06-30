@@ -1,4 +1,4 @@
-import { booqable } from './client'
+import { booqable, booqableV1 } from './client'
 import type { BookingState, BookingConfirmation } from '@/lib/types'
 
 interface BooqableOrderResponse {
@@ -38,7 +38,22 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
   })
   const orderId = orderRes.data.id
 
-  // 3. Transition order from "new" → "reserved" so it appears in Booqable Orders
+  // 3. Add line item via v1 API (Boomerang API does not support adding lines)
+  if (state.packageName) {
+    try {
+      await booqableV1.post(`/orders/${orderId}/lines`, {
+        line: {
+          title: state.packageName,
+          quantity: 1,
+          price_each_in_cents: state.packagePriceInCents ?? 0,
+        },
+      })
+    } catch {
+      // Line could not be added — order still visible with tag
+    }
+  }
+
+  // 4. Transition order from "new" → "reserved" so it appears in Booqable Orders
   try {
     await booqable.post('/order_status_transitions', {
       data: {
