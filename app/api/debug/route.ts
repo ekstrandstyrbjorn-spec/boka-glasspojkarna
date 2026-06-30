@@ -3,40 +3,25 @@ import { booqable } from '@/lib/booqable/client'
 export async function GET() {
   const results: Record<string, unknown> = {}
 
-  // Use existing order from earlier debug (Aug 15 order, status=new)
-  const orderId = 'c2647087-7adf-4b0d-a957-2588c7148a3b'
-  const productId = '36e90601-0fc4-4fdd-a7ba-80ce0f146b74'   // products type
-  const productGroupId = '6540b76e-65a8-490c-98ea-08059183191c' // product_groups type
+  const customerId = '2662cd5a-9d22-47a9-9eec-8ca9b214ad3a'
+  const productId = '36e90601-0fc4-4fdd-a7ba-80ce0f146b74'
 
-  // Try 1: POST /plannings with relationships
+  // Try proper JSON:API sideposting: order.relationships.lines references line by lid
   try {
-    const p = await booqable.post<unknown>('/plannings', {
-      data: {
-        type: 'plannings',
-        attributes: { quantity: 1 },
-        relationships: {
-          order: { data: { type: 'orders', id: orderId } },
-          item: { data: { type: 'products', id: productId } },
-        },
-      },
-    })
-    results.planning_result = p
-  } catch (e) {
-    results.planning_error = String(e)
-  }
-
-  // Try 2: PATCH the order with sideposted line using lid
-  try {
-    const p = await booqable.patch<unknown>(`/orders/${orderId}`, {
+    const o = await booqable.post<unknown>('/orders', {
       data: {
         type: 'orders',
-        id: orderId,
-        attributes: {},
+        lid: 'order-1',
+        attributes: { starts_at: '2026-08-20T08:00:00Z', stops_at: '2026-08-21T20:00:00Z' },
+        relationships: {
+          customer: { data: { type: 'customers', id: customerId } },
+          lines: { data: [{ type: 'lines', lid: 'line-1' }] },
+        },
       },
       included: [
         {
           type: 'lines',
-          lid: 'new-line-1',
+          lid: 'line-1',
           attributes: { quantity: 1 },
           relationships: {
             item: { data: { type: 'products', id: productId } },
@@ -44,22 +29,29 @@ export async function GET() {
         },
       ],
     })
-    results.patch_sidepost_result = p
+    results.lid_sidepost = o
   } catch (e) {
-    results.patch_sidepost_error = String(e)
+    results.lid_sidepost_error = String(e)
   }
 
-  // Try 3: POST /lines with order_id as query param
+  // Also: try writing tag_list on order (so staff see package name even if line fails)
   try {
-    const p = await booqable.post<unknown>(`/lines?filter[order_id]=${orderId}`, {
+    const o = await booqable.post<unknown>('/orders', {
       data: {
-        type: 'lines',
-        attributes: { quantity: 1, item_id: productGroupId },
+        type: 'orders',
+        attributes: {
+          starts_at: '2026-08-22T08:00:00Z',
+          stops_at: '2026-08-23T20:00:00Z',
+          tag_list: ['Glass S'],
+        },
+        relationships: {
+          customer: { data: { type: 'customers', id: customerId } },
+        },
       },
     })
-    results.lines_query_param_result = p
+    results.tag_list_order = o
   } catch (e) {
-    results.lines_query_param_error = String(e)
+    results.tag_list_error = String(e)
   }
 
   return Response.json(results)
