@@ -53,7 +53,22 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
     }
   }
 
-  // 4. Transition order from "new" → "reserved" so it appears in Booqable Orders
+  // 4. Add contact info line so staff see phone + address on the order
+  try {
+    const parts = [
+      state.phone,
+      state.address && `${state.address}, ${state.postalCode} ${state.city}`.trim(),
+    ].filter(Boolean)
+    if (parts.length > 0) {
+      await booqableV1.post(`/orders/${orderId}/lines`, {
+        line: { title: parts.join(' | '), quantity: 1, price_each_in_cents: 0 },
+      })
+    }
+  } catch {
+    // Non-fatal
+  }
+
+  // 5. Transition order from "new" → "reserved" so it appears in Booqable Orders
   try {
     await booqable.post('/order_status_transitions', {
       data: {
