@@ -2,7 +2,7 @@ import { booqable } from './client'
 import type { BookingState, BookingConfirmation } from '@/lib/types'
 
 interface BooqableOrderResponse {
-  data: { id: string; attributes: { number: string; status: string } }
+  data: { id: string; attributes: { number: string } }
 }
 
 interface BooqableCustomerResponse {
@@ -22,24 +22,23 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
   })
   const customerId = customerRes.data.id
 
-  // 2. Create order
+  // 2. Create order — tag with package name so staff see it in Booqable UI
   const orderRes = await booqable.post<BooqableOrderResponse>('/orders', {
     data: {
       type: 'orders',
       attributes: {
         starts_at: `${state.startDate}T08:00:00Z`,
         stops_at: `${state.endDate}T20:00:00Z`,
+        tag_list: [state.packageName, `${state.guests} gäster`].filter(Boolean),
       },
       relationships: {
-        customer: {
-          data: { type: 'customers', id: customerId },
-        },
+        customer: { data: { type: 'customers', id: customerId } },
       },
     },
   })
   const orderId = orderRes.data.id
 
-  // 3. Transition order from "new" → "reserved" so it appears in Booqable UI
+  // 3. Transition order from "new" → "reserved" so it appears in Booqable Orders
   try {
     await booqable.post('/order_status_transitions', {
       data: {
@@ -53,32 +52,10 @@ export async function createOrder(state: BookingState): Promise<BookingConfirmat
       },
     })
   } catch {
-    // Transition failed — order stays as "new" but is still created
-  }
-
-  // 4. Add the package as a product line
-  if (state.packageId) {
-    try {
-      await booqable.post('/lines', {
-        data: {
-          type: 'lines',
-          attributes: { quantity: 1 },
-          relationships: {
-            order: { data: { type: 'orders', id: orderId } },
-            item: { data: { type: 'product_groups', id: state.packageId } },
-          },
-        },
-      })
-    } catch {
-      // Line could not be added — staff can add product manually in Booqable
-    }
+    // Order stays as "new" — still created and visible via search
   }
 
   const orderNumber = orderRes.data.attributes.number ?? orderId.slice(0, 8).toUpperCase()
 
-  return {
-    orderId,
-    orderNumber,
-    email: state.email,
-  }
+  return { orderId, orderNumber, email: state.email }
 }
