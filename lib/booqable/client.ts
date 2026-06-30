@@ -58,4 +58,6 @@ async function v1Request<T>(path: string, init: RequestInit): Promise<T> {
 export const booqableV1 = {
   post: <T>(path: string, body: unknown) =>
     v1Request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+  patch: <T>(path: string, body: unknown) =>
+    v1Request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
 }
