@@ -3,34 +3,36 @@ import { booqable } from '@/lib/booqable/client'
 export async function GET() {
   const results: Record<string, unknown> = {}
 
-  // Use the order we know works
   const orderId = 'e0a2f37f-c2ca-4e3b-9e43-738482187899'
-  // Glass S product group ID from earlier
+  // The actual product variant ID (child of product_group Glass S)
+  const productId = '36e90601-0fc4-4fdd-a7ba-80ce0f146b74'
+  // The product_group ID for Glass S
   const productGroupId = '6540b76e-65a8-490c-98ea-08059183191c'
 
-  // Try lines with product_groups relationship
+  // Try 1: nested route POST /orders/{id}/lines with product variant
   try {
-    const line = await booqable.post<unknown>('/lines', {
+    const r = await booqable.post<unknown>(`/orders/${orderId}/lines`, {
       data: {
         type: 'lines',
-        attributes: { quantity: 1 },
-        relationships: {
-          order: { data: { type: 'orders', id: orderId } },
-          item: { data: { type: 'product_groups', id: productGroupId } },
-        },
+        attributes: { quantity: 1, item_id: productId },
       },
     })
-    results.line_product_groups = line
+    results.nested_product = r
   } catch (e) {
-    results.line_product_groups_error = String(e)
+    results.nested_product_error = String(e)
   }
 
-  // Also fetch the product group to see if it has a default product/variant
+  // Try 2: nested route with product_group id
   try {
-    const pg = await booqable.get<unknown>(`/product_groups/${productGroupId}?include=products`)
-    results.product_group_with_products = pg
+    const r = await booqable.post<unknown>(`/orders/${orderId}/lines`, {
+      data: {
+        type: 'lines',
+        attributes: { quantity: 1, item_id: productGroupId },
+      },
+    })
+    results.nested_product_group = r
   } catch (e) {
-    results.product_group_error = String(e)
+    results.nested_product_group_error = String(e)
   }
 
   return Response.json(results)
