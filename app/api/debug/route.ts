@@ -3,30 +3,13 @@ import { booqableV1 } from '@/lib/booqable/client'
 export async function GET() {
   const results: Record<string, unknown> = {}
 
-  // Create customer first
-  let customerId: string
+  // Fetch the customer we patched last time to see if address saved
+  const customerId = '00852647-93e3-405c-8d68-e624853e1b8e'
   try {
-    const c = await booqableV1.post<{ customer: { id: string } }>('/customers', {
-      customer: { name: 'Patch Test', email: 'patch@glasspojkarna.se' },
-    })
-    customerId = c.customer.id
-    results.created_id = customerId
-  } catch (e) { results.create_error = String(e); return Response.json(results) }
-
-  // Try PATCH with flat address fields + phone
-  try {
-    const u = await booqableV1.patch<unknown>(`/customers/${customerId}`, {
-      customer: {
-        phone: '070-123 45 67',
-        address1: 'Testgatan 1',
-        city: 'Stockholm',
-        zipcode: '11122',
-        country: 'SE',
-      },
-    })
-    results.patch_result = u
+    const c = await booqableV1.get<unknown>(`/customers/${customerId}`)
+    results.customer = c
   } catch (e) {
-    results.patch_error = String(e)
+    results.error = String(e)
   }
 
   return Response.json(results)

@@ -52,10 +52,12 @@ async function v1Request<T>(path: string, init: RequestInit): Promise<T> {
     const body = await res.text()
     throw new Error(`Booqable v1 API error ${res.status}: ${body}`)
   }
-  return res.json() as Promise<T>
+  const text = await res.text()
+  return (text ? JSON.parse(text) : {}) as T
 }
 
 export const booqableV1 = {
+  get: <T>(path: string) => v1Request<T>(path, { method: 'GET' }),
   post: <T>(path: string, body: unknown) =>
     v1Request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   patch: <T>(path: string, body: unknown) =>
